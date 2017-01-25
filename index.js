@@ -140,7 +140,7 @@ function emitOpeningDay (alexa, data)
     {
         // opening day is coming up
         numDays = Math.round(differenceMS/oneDayMS);
-        alexa.emit(':tell', "There are " + numDays + " days remaining until opening day " + data.date);
+        alexa.emit(':tell', "Cigars baseball opening day is on " + data.date + ". There are " + numDays + " days remaining until the season opener");
     }
     else
     {
@@ -156,8 +156,17 @@ function emitOpeningDay (alexa, data)
 */
 var handlers = {
 
+    // using "ask" for launchRequest so that the skill remains open for user to ask a question
     'LaunchRequest': function () {
-        this.emit(':tell', 'Welcome to the Atlanta Cigars Baseball app. Go ahead and ask me something about Cigars Baseball. For example, you can say ask Cigars Baseball when is the next game, or ask Cigars Baseball who is the leading hitter or pitcher, or say ask Cigars Baseball, what is the team record');
+        this.emit(':ask', 'Welcome to the Atlanta Cigars Baseball app. Go ahead and ask me something about Cigars Baseball.', 'What would you like to know about Cigars Baseball');
+    },
+
+    'AMAZON.CancelIntent': function () {
+        this.emit(':tell', 'Ok, see you at the ballpark');
+    },
+
+    'AMAZON.HelpIntent': function () {
+        this.emit(':ask', 'Go ahead and ask me something about Cigars Baseball. For example, you can say ask Cigars Baseball when is the next game, or ask Cigars Baseball who is the leading hitter or pitcher, or say ask Cigars Baseball, what is the team record? You may need to say ask Cigars Baeball prior to your question unless the app is just opened and active', 'What would you like to know about Cigars Baseball');
     },
 
     'NextGameIntent': function () {
