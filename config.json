@@ -1,0 +1,6 @@
+{
+	"appID": "amzn1.ask.skill.92ca1fbc-56d2-4a73-bcf8-805fc43e7147",
+    "openingDay": "March 26, 2017",
+	"cigarsBaseballDevServer": "http://localhost:3000/cigarsbaseball",
+	"cigarsBaseballProdServer": "https://cigarsbaseballserver.herokuapp.com/cigarsbaseball"
+}
