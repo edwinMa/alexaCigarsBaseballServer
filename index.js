@@ -2,26 +2,25 @@
 
 var Alexa = require('alexa-sdk');
 var request = require ('request');
+var config = require('./config.json');
 
-var APP_ID = 'amzn1.ask.skill.92ca1fbc-56d2-4a73-bcf8-805fc43e7147';
+var APP_ID = config.appID;
 
 const PROD = true;
-const OPENING_DAY = "March 26, 2017";
+const OPENING_DAY = config.openingDay
 
-var ServerBaseURL = "http://localhost:3000/cigarsbaseball";
+var ServerBaseURL = config.cigarsBaseballDevServer;
 if (PROD)
 {
-        ServerBaseURL = "https://cigarsbaseballserver.herokuapp.com/cigarsbaseball";
+        ServerBaseURL = config.cigarsBaseballProdServer;
 }
 
 const ServerURLNextGame = ServerBaseURL + "/nextgame";
 const ServerURLPrevGame = ServerBaseURL + "/prevgame";
-
 const ServerURLTopHitter = ServerBaseURL + "/tophitter";
 const ServerURLTopPitcher = ServerBaseURL + "/toppitcher";
-
 const ServerURLRecord = ServerBaseURL + "/record";
-
+const ServerURLPlayerStats = ServerBaseURL + "/playerstats";
 
 exports.handler = function(event, context, callback){
     var alexa = Alexa.handler(event, context);
@@ -124,6 +123,39 @@ function emitTopPitcher (alexa, data)
     */                
 }
 
+function emitPlayerStats (alexa, data)
+{
+    if (data!= null && data.player != "not_found")
+    {
+        var statsMsg = "";
+        // add basic hitting stats if any
+        if (data.atBats > 0)
+        {
+            statsMsg = statsMsg + "As a batter, " + data.player + " has " + data.hits + " hits, an O P S of " + data.ops + 
+            ", and a batting average of " + data.avg + ". ";
+
+            // add home runs if any
+            if (data.hrs > 0)
+            {
+                statsMsg = statsMsg + data.player + " has " + data.hrs + "home runs. "; 
+            }
+        }
+        // add basic pitchng stats if any
+        if (data.ip > 0)
+        {
+            statsMsg = statsMsg + "As a pitcher, " + data.player + " has pitched " + data.ip + " innings with a wip of " + data.whip + ", an E R A of " + data.era + 
+                ", and " + data.pitchingKs + " strikeouts.";
+        }
+
+        // emit retrieved stats msg
+        alexa.emit(':tell',  statsMsg);
+    }
+    else 
+    {
+        alexa.emit (':tell', "statistics for player not found");
+    }
+}
+
 function emitOpeningDay (alexa, data)
 {
     console.log ("emitting opening day: " + data.date);
@@ -149,7 +181,6 @@ function emitOpeningDay (alexa, data)
     }
 
 }
-
 
 /*
 ** Alexa intent handlers
@@ -193,5 +224,25 @@ var handlers = {
 
     'OpeningDayIntent': function () {
         emitOpeningDay (this, {"date": OPENING_DAY});
+    },
+
+    'PlayerStatsIntent': function () {
+        // get player name from custom slot
+        var player = this.event.request.intent.slots.PlayerName.value;
+        console.log ("PlayerStatsIntent retrieved player " + player);
+
+        // parse full name of player into first and last name
+        var nameArray = player.split (' ');
+        var first = nameArray[0];
+        var last = nameArray[1];
+
+        console.log ("player first name is " + first);
+        console.log ("player last name is " + last);
+
+        // create url to get player stats for specific player
+        var url = ServerURLPlayerStats + "?firstname=" + first + "&lastname=" + last;
+        console.log ("request url is " + url);
+
+        requestData (url, this, emitPlayerStats);
     }
 };
